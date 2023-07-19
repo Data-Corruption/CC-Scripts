@@ -22,6 +22,7 @@ jobs:
       run: |
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
+        git pull --rebase
         git add Programs/programs.txt
         git commit -m "Update programs.txt" || exit 0  # Exit successfully if nothing to commit
         git push
