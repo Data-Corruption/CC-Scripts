@@ -1,27 +1,7 @@
--- 'update' program
-local url = "https://data-corruption.github.io/CC-Scripts/Programs/"
-local program_list = "programs.txt"
+-- Minimized line count for easy copy-paste
 
--- Fetch the program list
-shell.run("wget", url .. program_list, program_list)
-local f = fs.open(program_list, "r")
-
--- Parse the program list
-local programs = {}
-local line = f.readLine()
-while line do
-  table.insert(programs, line)
-  line = f.readLine()
-end
-f.close()
-
--- Update each program
-for _, program in ipairs(programs) do
-  print("Updating " .. program .. "...")
-  -- delete the old version
-  shell.run("rm", program)
-  -- download the new version
-  shell.run("wget", url .. program, program)
-end
-
+local url, f, p = "https://data-corruption.github.io/CC-Scripts/Programs/", fs.open("programs.txt", "r"), {}
+shell.run("wget", url .. "programs.txt", "programs.txt")
+for l in f.readLine do table.insert(p, l) end; f.close()
+for _, pr in ipairs(p) do print("Updating " .. pr .. "..."); shell.run("rm", pr); shell.run("wget", url .. pr, pr) end
 print("All scripts updated!")
