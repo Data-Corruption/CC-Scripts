@@ -1,0 +1,27 @@
+name: Update Program List
+
+on:
+  push:
+    paths:
+      - 'Programs/*.lua'
+
+jobs:
+  update_program_list:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Check out repository
+      uses: actions/checkout@v2
+
+    - name: Generate program list
+      run: |
+        ls Programs/*.lua > Programs/programs.txt
+        cat Programs/programs.txt
+
+    - name: Commit and push changes
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git add Programs/programs.txt
+        git commit -m "Update programs.txt" || exit 0  # Exit successfully if nothing to commit
+        git push
