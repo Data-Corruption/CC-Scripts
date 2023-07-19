@@ -1,5 +1,5 @@
 -- 'update' program
-local url = "https://Data-Corruption.github.io/CC-Scripts/Programs/"
+local url = "https://data-corruption.github.io/CC-Scripts/Programs/"
 local program_list = "programs.txt"
 
 -- Fetch the program list
