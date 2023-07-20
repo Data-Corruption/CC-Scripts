@@ -11,6 +11,13 @@ local targetBlocks = {
   "minecraft:lapis_ore", 
   "minecraft:diamond_ore", 
   "minecraft:emerald_ore", 
+  "minecraft:deepslate_coal_ore", 
+  "minecraft:deepslate_iron_ore", 
+  "minecraft:deepslate_gold_ore", 
+  "minecraft:deepslate_redstone_ore", 
+  "minecraft:deepslate_lapis_ore", 
+  "minecraft:deepslate_diamond_ore", 
+  "minecraft:deepslate_emerald_ore", 
   "minecraft:obsidian", 
   "minecraft:glowstone", 
   "minecraft:netherrack", 
@@ -116,7 +123,7 @@ function dip()
     turtle.down()
     depth = depth + 1
     -- look around for target blocks
-    for i = 0, 3 do
+    for i = 0, 2 do
       if facingTargetBlock() then
         turtle.dig()
       end
@@ -127,6 +134,9 @@ function dip()
   poop()
   -- Go back up
   for i = 1, depth do
+    if turtle.detectUp() then
+      turtle.digUp()
+    end
     turtle.up()
   end
   -- Return to starting orientation
