@@ -123,6 +123,9 @@ function dip()
     turtle.down()
     depth = depth + 1
     -- look around for target blocks
+    if facingTargetBlock() then
+      turtle.dig()
+    end
     for i = 0, 2 do
       if facingTargetBlock() then
         turtle.dig()
