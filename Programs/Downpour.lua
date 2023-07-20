@@ -106,9 +106,16 @@ end
 
 -- Drops trash blocks
 function poop()
-  for i = 1, #trashBlocks do
-    turtle.select(i)
-    turtle.drop()
+  for slot = 1, 16 do -- Turtle has 16 slots
+    local item = turtle.getItemDetail(slot)
+    if item then
+      for i = 1, #trashBlocks do
+        if item.name == trashBlocks[i] then
+          turtle.select(slot)
+          turtle.drop()
+        end
+      end
+    end
   end
 end
 
