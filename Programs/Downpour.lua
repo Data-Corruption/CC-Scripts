@@ -122,7 +122,7 @@ function dip()
     turnRight()
 end
 
-function main()
+function main(...)
     -- Get Rows and Columns
     local tArgs = {...}
     if #tArgs < 2 then
@@ -131,10 +131,16 @@ function main()
     end
     local Rows = tonumber(tArgs[1])
     local Columns = tonumber(tArgs[2])
+    print("Setting up for " .. Rows .. "x" .. Columns .. " downpour.")
 
     -- Check if turtle is advanced
     local isAdvancedTurle = false
     if turtle.getFuelLimit() >= 100000 then isAdvancedTurle = true end
+    if isAdvancedTurle then
+        print("☑ Advanced Turtle")
+    else
+        print("☐ Advanced Turtle")
+    end
 
     -- Check for enough fuel
     local fuelPerDip = 2
@@ -143,12 +149,15 @@ function main()
         print("Not enough fuel for this job.")
         return
     end
+    print("☑ Fuel.")
 
     -- Check for enough barrels
     if Rows * Columns > barrelCount then
         print("Not enough barrels for this job.")
         return
     end
+    print("☑ Barrels.\n")
+    print("Starting Downpour...")
 
     -- Downpour
     for i = 1, Rows do
