@@ -1,183 +1,176 @@
--- Rows and Columns Variables
-local Rows = 4
-local Columns = 4
-
--- Target Blocks/Ores
+-- Target Blocks that don't have "ore" in their name
 local targetBlocks = {
-  "minecraft:coal_ore", 
-  "minecraft:iron_ore", 
-  "minecraft:gold_ore", 
-  "minecraft:redstone_ore", 
-  "minecraft:lapis_ore", 
-  "minecraft:diamond_ore", 
-  "minecraft:emerald_ore", 
-  "minecraft:deepslate_coal_ore", 
-  "minecraft:deepslate_iron_ore", 
-  "minecraft:deepslate_gold_ore", 
-  "minecraft:deepslate_redstone_ore", 
-  "minecraft:deepslate_lapis_ore", 
-  "minecraft:deepslate_diamond_ore", 
-  "minecraft:deepslate_emerald_ore", 
-  "minecraft:obsidian", 
-  "minecraft:glowstone", 
-  "minecraft:netherrack", 
-  "minecraft:nether_quartz_ore", 
-  "minecraft:nether_gold_ore", 
-  "minecraft:nether_brick", 
-  "minecraft:ancient_debris", 
-  "minecraft:coal_block", 
-  "minecraft:iron_block", 
-  "minecraft:gold_block", 
-  "minecraft:redstone_block", 
-  "minecraft:lapis_block", 
-  "minecraft:diamond_block", 
-  "minecraft:emerald_block", 
-  "minecraft:quartz_block"
+    "minecraft:obsidian", "minecraft:glowstone", "minecraft:netherrack",
+    "minecraft:nether_brick", "minecraft:ancient_debris",
+    "minecraft:coal_block", "minecraft:iron_block", "minecraft:gold_block",
+    "minecraft:redstone_block", "minecraft:lapis_block",
+    "minecraft:diamond_block", "minecraft:emerald_block",
+    "minecraft:quartz_block"
 }
 
--- Trash Blocks/Ores
-local trashBlocks = {
-  "minecraft:gravel", 
-  "minecraft:dirt", 
-  "minecraft:cobblestone", 
-  "minecraft:diorite", 
-  "minecraft:granite",
-  "minecraft:clay_ball"
-}
+-- Container Block Identifiers
+local containerBlocks = {"barrel", "chest", "shulker", "jar", "sack", "toolbox"}
 
 -- Get the initial orientation. 0-3 Clockwise.
 local startingOrientation = 0
 local currentOrientation = 0
 
+-- Find slot with stack of barrels, error if none found
+local barrelSlot = 0
+local barrelCount = 0
+for i = 1, 16 do
+    local data = turtle.getItemDetail(i)
+    if data ~= nil then
+        if data.name == "minecraft:barrel" then
+            barrelSlot = i
+            barrelCount = data.count
+        end
+    end
+end
+if barrelSlot == 0 then
+    print("No barrels found in inventory.")
+    return
+end
+
 -- Turning functions
 function turnRight()
-  turtle.turnRight()
-  currentOrientation = currentOrientation + 1
-  if currentOrientation > 3 then
-    currentOrientation = 0
-  end
+    turtle.turnRight()
+    currentOrientation = currentOrientation + 1
+    if currentOrientation > 3 then currentOrientation = 0 end
 end
 function turnLeft()
-  turtle.turnLeft()
-  currentOrientation = currentOrientation - 1
-  if currentOrientation < 0 then
-    currentOrientation = 3
-  end
+    turtle.turnLeft()
+    currentOrientation = currentOrientation - 1
+    if currentOrientation < 0 then currentOrientation = 3 end
 end
 
 -- Check for block, dig if necessary, move forward, repeat x times
 function forward(x)
-  for i = 1, x do
-    if turtle.detect() then
-      turtle.dig()
+    for i = 1, x do
+        if turtle.detect() then turtle.dig() end
+        turtle.forward()
     end
-    turtle.forward()
-  end
 end
 
 -- Uses inspectDown() to check for bedrock and returns true if found, false if not
-function atBedrock()
-  local success, data = turtle.inspectDown()
-  if success then
-    if data.name == "minecraft:bedrock" then
-      return true
-    else
-      return false
+function atBedrockOrContainer()
+    local success, data = turtle.inspectDown()
+    if success then
+        if data.name == "minecraft:bedrock" then return true end
+        for i = 1, #containerBlocks do
+            if string.match(data.name, containerBlocks[i]) then
+                return true
+            end
+        end
     end
-  else
     return false
-  end
 end
 
 -- Uses inspect() to check for target blocks and returns true if found, false if not
 function facingTargetBlock()
-  local success, data = turtle.inspect()
-  if success then
-    for i = 1, #targetBlocks do
-      if data.name == targetBlocks[i] then
-        return true
-      end
+    local success, data = turtle.inspect()
+    if success then
+        if string.match(data.name, "ore") then return true end
+        for i = 1, #targetBlocks do
+            if data.name == targetBlocks[i] then return true end
+        end
     end
     return false
-  else
-    return false
-  end
 end
 
--- Drops trash blocks
-function poop()
-  for slot = 1, 16 do -- Turtle has 16 slots
-    local item = turtle.getItemDetail(slot)
-    if item then
-      for i = 1, #trashBlocks do
-        if item.name == trashBlocks[i] then
-          turtle.select(slot)
-          turtle.drop()
+-- Unloads all items from the turtle into a barrel in front of it
+function unload()
+    -- if block in front is a container, dig it
+    if turtle.detect() then turtle.dig() end
+    -- place barrel
+    turtle.select(barrelSlot)
+    turtle.place()
+    -- unload everything except the barrel stack into the placed barrel
+    for i = 1, 16 do
+        if i ~= barrelSlot then
+            turtle.select(i)
+            turtle.drop()
         end
-      end
     end
-  end
 end
 
 -- Digs down to bedrock, checking for ores around it and mining them
 function dip()
-  local depth = 0
-  while not atBedrock() do
-    -- Dig down
-    if turtle.detectDown() then
-      turtle.digDown()
+    local depth = 0
+    while not atBedrockOrContainer() do
+        -- Dig down
+        if turtle.detectDown() then turtle.digDown() end
+        turtle.down()
+        depth = depth + 1
+        -- look around for target blocks
+        if facingTargetBlock() then turtle.dig() end
+        for i = 0, 2 do
+            if facingTargetBlock() then turtle.dig() end
+            turnRight()
+        end
     end
-    turtle.down()
-    depth = depth + 1
-    -- look around for target blocks
-    if facingTargetBlock() then
-      turtle.dig()
+    -- Go back up
+    for i = 1, depth do
+        if turtle.detectUp() then turtle.digUp() end
+        turtle.up()
     end
-    for i = 0, 2 do
-      if facingTargetBlock() then
-        turtle.dig()
-      end
-      turnRight()
-    end
-  end
-  -- Drop trash blocks
-  poop()
-  -- Go back up
-  for i = 1, depth do
-    if turtle.detectUp() then
-      turtle.digUp()
-    end
-    turtle.up()
-  end
-  -- Return to starting orientation
-  while currentOrientation ~= startingOrientation do
+    -- Return to starting orientation
+    while currentOrientation ~= startingOrientation do turnRight() end
+    -- Unload
+    turnLeft()
+    unload()
     turnRight()
-  end
 end
 
--- Start off by turning right
-turnRight()
+function main()
+    -- Get Rows and Columns
+    local tArgs = {...}
+    if #tArgs < 2 then
+        print("Usage: Downpour <rows> <columns>")
+        return
+    end
+    local Rows = tonumber(tArgs[1])
+    local Columns = tonumber(tArgs[2])
 
--- Downpour
-for i = 1, Rows do
-  for j = 1, Columns do
-    -- Dip
-    dip()
-    -- Move forward three times and down once
-    forward(3)
-    turnRight()
-    forward(1)
-    turnLeft()
-  end
-  -- Move to starting position for next row
-  turnRight()
-  turnRight()
-  forward(Columns * 3)
-  turnRight()
-  forward(Columns)
-  turnLeft()
-  forward(2)
-  turnLeft()
-  forward(1)
-  turnLeft()
+    -- Check if turtle is advanced
+    local isAdvancedTurle = false
+    if turtle.getFuelLimit() >= 100000 then isAdvancedTurle = true end
+
+    -- Check for enough fuel
+    local fuelPerDip = 2
+    if isAdvancedTurle then fuelPerDip = 1 end
+    if turtle.getFuelLevel() < Rows * Columns * fuelPerDip then
+        print("Not enough fuel for this job.")
+        return
+    end
+
+    -- Check for enough barrels
+    if Rows * Columns > barrelCount then
+        print("Not enough barrels for this job.")
+        return
+    end
+
+    -- Downpour
+    for i = 1, Rows do
+        for j = 1, Columns do
+            -- Dip
+            dip()
+            -- Move forward three times and down once
+            forward(3)
+            turnRight()
+            forward(1)
+            turnLeft()
+        end
+        -- Move to starting position for next row
+        turnRight()
+        turnRight()
+        forward(Columns * 3)
+        turnRight()
+        forward(Columns)
+        turnLeft()
+        forward(2)
+        turnLeft()
+        forward(1)
+        turnLeft()
+    end
 end
