@@ -105,8 +105,8 @@ function dip()
         -- look around for target blocks
         if facingTargetBlock() then turtle.dig() end
         for i = 0, 2 do
-            if facingTargetBlock() then turtle.dig() end
             turnRight()
+            if facingTargetBlock() then turtle.dig() end
         end
     end
     -- Go back up
