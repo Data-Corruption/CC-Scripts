@@ -126,7 +126,7 @@ function main(...)
     -- Get Rows and Columns
     local tArgs = {...}
     if #tArgs < 2 then
-        print("Usage: Downpour <rows> <columns>")
+        printError("Usage: Downpour <rows> <columns>")
         return
     end
     local Rows = tonumber(tArgs[1])
@@ -137,26 +137,26 @@ function main(...)
     local isAdvancedTurle = false
     if turtle.getFuelLimit() >= 100000 then isAdvancedTurle = true end
     if isAdvancedTurle then
-        print("☑ Advanced Turtle")
+        print("Advanced Turtle")
     else
-        print("☐ Advanced Turtle")
+        print("Standard Turtle")
     end
 
     -- Check for enough fuel
     local fuelPerDip = 2
     if isAdvancedTurle then fuelPerDip = 1 end
     if turtle.getFuelLevel() < Rows * Columns * fuelPerDip then
-        print("Not enough fuel for this job.")
+        printError("Not enough fuel for this job.")
         return
     end
-    print("☑ Fuel.")
+    print("Enough Fuel.")
 
     -- Check for enough barrels
     if Rows * Columns > barrelCount then
-        print("Not enough barrels for this job.")
+        printError("Not enough barrels for this job.")
         return
     end
-    print("☑ Barrels.\n")
+    print("Enough Barrels.\n")
     print("Starting Downpour...")
 
     -- Downpour
@@ -183,3 +183,5 @@ function main(...)
         turnLeft()
     end
 end
+
+main(...)
